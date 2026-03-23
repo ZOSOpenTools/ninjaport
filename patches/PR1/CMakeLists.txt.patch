@@ -1,13 +1,24 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 90e3418..9a3a348 100644
+index 9e189b6..da9a563 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -160,7 +160,7 @@ if(WIN32)
- 	set_source_files_properties(src/getopt.c PROPERTIES LANGUAGE CXX)
- else()
- 	target_sources(libninja PRIVATE src/subprocess-posix.cc)
+@@ -177,7 +177,7 @@ else()
+ 		src/jobserver-posix.cc
+ 		src/subprocess-posix.cc
+ 	)
 -	if(CMAKE_SYSTEM_NAME STREQUAL "OS400" OR CMAKE_SYSTEM_NAME STREQUAL "AIX")
-+  if(CMAKE_SYSTEM_NAME STREQUAL "OS400" OR CMAKE_SYSTEM_NAME STREQUAL "AIX" OR CMAKE_SYSTEM_NAME STREQUAL "OS390")
++	if(CMAKE_SYSTEM_NAME STREQUAL "OS400" OR CMAKE_SYSTEM_NAME STREQUAL "AIX" OR CMAKE_SYSTEM_NAME STREQUAL "OS390")
  		target_sources(libninja PRIVATE src/getopt.c)
  		# Build getopt.c, which can be compiled as either C or C++, as C++
  		# so that build environments which lack a C compiler, but have a C++
+@@ -185,6 +185,10 @@ else()
+ 		set_source_files_properties(src/getopt.c PROPERTIES LANGUAGE CXX)
+ 	endif()
+ 
++	if(CMAKE_SYSTEM_NAME STREQUAL "OS390")
++		add_compile_definitions(_XPLATFORM_SOURCE _POSIX_SOURCE _OPEN_SYS_FILE_EXT)
++	endif()
++
+ 	# Needed for perfstat_cpu_total
+ 	if(CMAKE_SYSTEM_NAME STREQUAL "AIX")
+ 		target_link_libraries(libninja PUBLIC "-lperfstat")

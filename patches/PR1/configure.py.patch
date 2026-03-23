@@ -1,8 +1,8 @@
-diff --git i/configure.py w/configure.py
-index 6ee64a8..87821be 100755
---- i/configure.py
-+++ w/configure.py
-@@ -61,12 +61,14 @@ class Platform(object):
+diff --git a/configure.py b/configure.py
+index 03b5ce4..95f27aa 100755
+--- a/configure.py
++++ b/configure.py
+@@ -65,12 +65,14 @@ class Platform(object):
              self._platform = 'os400'
          elif self._platform.startswith('dragonfly'):
              self._platform = 'dragonfly'
@@ -10,25 +10,25 @@ index 6ee64a8..87821be 100755
 +            self._platform = 'zos'
  
      @staticmethod
-     def known_platforms():
+     def known_platforms() -> List[str]:
        return ['linux', 'darwin', 'freebsd', 'openbsd', 'solaris', 'sunos5',
                'mingw', 'msvc', 'gnukfreebsd', 'bitrig', 'netbsd', 'aix',
 -              'dragonfly']
 +              'dragonfly', 'zos']
  
-     def platform(self):
-         return self._platform
-@@ -99,6 +101,9 @@ class Platform(object):
-     def is_os400_pase(self):
-         return self._platform == 'os400' or os.uname().sysname.startswith('OS400')
+     def platform(self) -> str:
+         return self._platform  # type: ignore # Incompatible return value type
+@@ -103,6 +105,9 @@ class Platform(object):
+     def is_os400_pase(self) -> bool:
+         return self._platform == 'os400' or os.uname().sysname.startswith('OS400')  # type: ignore # Module has no attribute "uname"
  
-+    def is_zos(self):
++    def is_zos(self) -> bool:
 +        return self._platform == 'zos'
 +
-     def uses_usr_local(self):
+     def uses_usr_local(self) -> bool:
          return self._platform in ('freebsd', 'openbsd', 'bitrig', 'dragonfly', 'netbsd')
  
-@@ -266,7 +271,11 @@ if configure_env:
+@@ -281,7 +286,11 @@ if configure_env:
      n.variable('configure_env', config_str + '$ ')
  n.newline()
  
@@ -41,7 +41,7 @@ index 6ee64a8..87821be 100755
  objext = '.o'
  if platform.is_msvc():
      CXX = 'cl'
-@@ -341,6 +350,17 @@ if platform.is_msvc():
+@@ -359,6 +368,20 @@ if platform.is_msvc():
      if not options.debug:
          cflags += ['/Ox', '/DNDEBUG', '/GL']
          ldflags += ['/LTCG', '/OPT:REF', '/OPT:ICF']
@@ -50,6 +50,9 @@ index 6ee64a8..87821be 100755
 +       '-Wno-deprecated',
 +       '-Wno-missing-field-initializers',
 +       '-Wno-unused-parameter',
++       '-D_XPLATFORM_SOURCE',
++       '-D_POSIX_SOURCE',
++       '-D_OPEN_SYS_FILE_EXT',
 +       '-DNINJA_PYTHON="%s"' % options.with_python]
 +    if options.debug:
 +       cflags += ['-g', '-D_GLIBCXX_DEBUG', '-D_GLIBCXX_DEBUG_PEDANTIC']
@@ -59,7 +62,7 @@ index 6ee64a8..87821be 100755
  else:
      cflags = ['-g', '-Wall', '-Wextra',
                '-Wno-deprecated',
-@@ -388,6 +408,8 @@ elif platform.is_aix():
+@@ -408,6 +431,8 @@ elif platform.is_aix():
      cflags.remove('-fvisibility=hidden')
  elif platform.is_msvc():
      pass
@@ -68,9 +71,9 @@ index 6ee64a8..87821be 100755
  else:
      if options.profile == 'gmon':
          cflags.append('-pg')
-@@ -483,7 +505,10 @@ if platform.supports_ninja_browse():
+@@ -504,7 +529,10 @@ if platform.supports_ninja_browse():
  n.comment('the depfile parser and ninja lexers are generated using re2c.')
- def has_re2c():
+ def has_re2c() -> bool:
      try:
 -        proc = subprocess.Popen(['re2c', '-V'], stdout=subprocess.PIPE)
 +        if platform.is_zos():
@@ -80,8 +83,8 @@ index 6ee64a8..87821be 100755
          return int(proc.communicate()[0], 10) >= 1503
      except OSError:
          return False
-@@ -553,6 +578,8 @@ else:
-     objs += cxx('subprocess-posix')
+@@ -580,6 +608,8 @@ else:
+         objs += cxx(name, variables=cxxvariables)
  if platform.is_aix():
      objs += cc('getopt')
 +elif platform.is_zos():

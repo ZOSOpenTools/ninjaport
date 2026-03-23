@@ -1,5 +1,5 @@
 diff --git a/src/disk_interface.cc b/src/disk_interface.cc
-index 8102a0e..859ca64 100644
+index ffd4ee5..d61f82c 100644
 --- a/src/disk_interface.cc
 +++ b/src/disk_interface.cc
 @@ -232,7 +232,9 @@ TimeStamp RealDiskInterface::Stat(const string& path, string* err) const {
